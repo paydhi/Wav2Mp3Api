@@ -8,7 +8,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         fields = ['username']
 
 
-class UserSerializer(serializers.ModelSerializer):
+class ResponseUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['access_token', 'user_uuid']
