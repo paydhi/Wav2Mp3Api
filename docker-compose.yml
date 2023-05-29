@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  questions_api:
+  wav2mp3_api:
     image: "wav2mp3_api"
     restart: always
     build:

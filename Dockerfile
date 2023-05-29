@@ -5,5 +5,5 @@ COPY ./entrypoint.sh .
 RUN chmod +x entrypoint.sh
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
-COPY questions_api .
+COPY wav2mp3_api .
 ENTRYPOINT ["sh","entrypoint.sh"]

@@ -21,15 +21,16 @@ class CreateUserView(APIView):
         user.save()
 
         response_data = {'access_token': str(user.access_token), 'user_uuid': str(user.user_uuid)}
-        logger.info(response_data)
+        logger.info(f'Data for serializer: {response_data}')
 
         response_serializer = ResponseUserSerializer(data=response_data)
 
         if response_serializer.is_valid(raise_exception=True):
             logger.info(f'User {username} created successfully')
-            logger.info(response_serializer.data)
-            logger.info(response_serializer.errors)
-            logger.info(response_serializer.validated_data)
+
+            logger.info(f'serializer.data: {response_serializer.data}')
+            logger.info(f'serializer.errors: {response_serializer.errors}')
+            logger.info(f'serializer.validated_data: {response_serializer.validated_data}')
 
             return Response(response_serializer.validated_data, status=201)
         else:
