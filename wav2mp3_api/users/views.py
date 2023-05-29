@@ -20,7 +20,7 @@ class CreateUserView(APIView):
         user = User(username=username)
         user.save()
 
-        response_data = {'access_token': str(user.access_token), 'user_uuid': str(user.user_uuid)}
+        response_data = {'access_token': user.access_token, 'user_uuid': user.user_uuid}
         logger.info(f'Data for serializer: {response_data}')
 
         response_serializer = ResponseUserSerializer(data=response_data)
