@@ -12,7 +12,10 @@
 2. `cd Wav2Mp3Api`
 3. `docker compose up -d`
 
-Backend now runs on localhost:8000.
+Backend now runs on localhost:8000, postgres runs on localhost:5432.
+
+User:password for DB is postgres:postgres, as stated in `settings.py` and
+`docker-compose.yml`
 
 To stop app just run `docker compose stop`.
 
