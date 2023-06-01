@@ -1,20 +1,33 @@
-from django.shortcuts import render
+import os
+
+from pydub import AudioSegment
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FileUploadParser
 
 from loguru import logger
+from records.models import Record
+from records.serializers import UploadRecordSerializer
+from users.models import User
+
+from django.core.files.base import File, ContentFile
+from io import BytesIO
 
 
 class UploadRecordView(APIView):
-    parser_classes = (MultiPartParser, FileUploadParser)
-
     def post(self, request):
-        # TODO: fix file upload
-        file = request.FILES.get('file')
-        logger.info(f'file: {file}')
-        data = {'user_uuid': request.data.get('user_uuid'),
-                'access_token': request.data.get('access_token')}
-        logger.info(f'data: {data}')
+        user = User.objects.get(user_uuid=request.data.get('user_uuid'))
+
+        file = request.FILES['file']
+        suffix = f'_{request.data.get("user_uuid")[:4]}.mp3'
+        filename_mp3 = file.name.replace(".wav", suffix)
+
+        record_mp3 = BytesIO()
+        record = AudioSegment.from_wav(BytesIO(file.read()))
+        record.export(record_mp3, format='mp3')
+        record_mp3.seek(0)
+        record_to_save = ContentFile(record_mp3.read(), name=filename_mp3)
+
+        Record.objects.create(record=record_to_save, user=user)
 
         return Response({'status': 'success'})
