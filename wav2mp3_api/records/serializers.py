@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from records.models import Record
 
 
 class UploadRecordSerializer(serializers.Serializer):
@@ -11,7 +10,9 @@ class UploadRecordSerializer(serializers.Serializer):
         fields = ['file', 'user_uuid', 'access_token']
 
 
-class RecordUrlSerializer(serializers.ModelSerializer):
+class DownloadRecordSerializer(serializers.Serializer):
+    record_uuid = serializers.UUIDField()
+    user_uuid = serializers.UUIDField()
+
     class Meta:
-        model = Record
-        fields = ['record_uuid', 'record']
+        fields = ['record_uuid', 'user_uuid']
