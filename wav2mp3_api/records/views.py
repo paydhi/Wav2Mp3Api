@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from pydub.exceptions import PydubException
 
 from rest_framework.response import Response
@@ -30,8 +29,6 @@ class UploadRecordView(APIView):
             logger.error(f'Access token for user with uuid {user_uuid} does not match')
             return Response(data={'access_token': 'Access token does not match'}, status=401)
 
-        user = user_query.first()
-
         file = request.FILES.get('file')
         try:
             file = convert_wav_to_mp3(file)
@@ -39,6 +36,7 @@ class UploadRecordView(APIView):
             logger.error(f'Failed to convert audio')
             return Response({'error': 'Invalid file'}, status=400)
 
+        user = user_query.first()
         record = Record.objects.create(record=file, user=user)
 
         download_url = get_download_url(request, record, user)
