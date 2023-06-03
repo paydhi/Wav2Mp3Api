@@ -1,15 +1,13 @@
 from django.http import HttpResponse
+from loguru import logger
 from pydub.exceptions import PydubException
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from loguru import logger
 from records.models import Record
 from records.serializers import UploadRecordSerializer, DownloadRecordSerializer
-from users.models import User
-
 from records.utils import convert_wav_to_mp3, get_download_url
+from users.models import User
 
 
 class UploadRecordView(APIView):
