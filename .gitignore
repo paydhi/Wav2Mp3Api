@@ -168,3 +168,5 @@ settings_dev.py
 
 # temp files stuff
 *.mp3
+
+data
