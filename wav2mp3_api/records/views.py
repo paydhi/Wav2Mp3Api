@@ -33,7 +33,7 @@ class UploadRecordView(APIView):
         try:
             file = convert_wav_to_mp3(file)
         except PydubException:
-            logger.error(f'Failed to convert audio')
+            logger.error(f'Failed to convert audio, not valid wav file or corrupted file')
             return Response({'error': 'Invalid file'}, status=400)
 
         user = user_query.first()
