@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from loguru import logger
 from records.models import Record
-from records.serializers import UploadRecordSerializer
+from records.serializers import UploadRecordSerializer, DownloadRecordSerializer
 from users.models import User
 
 from records.utils import convert_wav_to_mp3, get_download_url
@@ -36,6 +36,7 @@ class UploadRecordView(APIView):
         try:
             file = convert_wav_to_mp3(file)
         except PydubException:
+            logger.error(f'Failed to convert audio')
             return Response({'error': 'Invalid file'}, status=400)
 
         record = Record.objects.create(record=file, user=user)
@@ -50,11 +51,27 @@ class UploadRecordView(APIView):
 
 
 class DownloadRecordView(APIView):
-    def get(self, request):
-        record_uuid = request.GET.get('id')
-        user_uuid = request.GET.get('user')
+    serializer_class = DownloadRecordSerializer
 
-        record = get_object_or_404(Record, record_uuid=record_uuid, user__user_uuid=user_uuid)
+    def get(self, request):
+        serializer = self.serializer_class(data={'record_uuid': request.GET.get('id'),
+                                                 'user_uuid': request.GET.get('user')})
+        serializer.is_valid(raise_exception=True)
+        record_uuid = serializer.validated_data.get('record_uuid')
+        user_uuid = serializer.validated_data.get('user_uuid')
+
+        record_query = Record.objects.filter(record_uuid=record_uuid)
+        user_query = User.objects.filter(user_uuid=user_uuid)
+
+        if not user_query.exists():
+            logger.error(f'User with uuid {user_uuid} not found')
+            return Response(data={'user_uuid': 'User not found'}, status=401)
+
+        if not record_query.exists():
+            logger.error(f'Record with uuid {record_uuid} not found')
+            return Response(data={'record_uuid': 'Record not found'}, status=400)
+
+        record = record_query.first()
         filename = record.record.name.removeprefix('uploads/')
 
         response = HttpResponse(record.record, content_type='audio/mpeg')

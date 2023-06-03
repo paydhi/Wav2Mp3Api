@@ -1,13 +1,5 @@
 from rest_framework import serializers
 
-from users.models import User
-
-
-class InvalidUUIDException(serializers.ValidationError):
-    status_code = 401
-    default_detail = 'Invalid UUID.'
-    default_code = 'invalid_uuid'
-
 
 class UploadRecordSerializer(serializers.Serializer):
     file = serializers.FileField()
