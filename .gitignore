@@ -169,4 +169,5 @@ settings_dev.py
 # temp files stuff
 *.mp3
 
+# docker stuff
 data
