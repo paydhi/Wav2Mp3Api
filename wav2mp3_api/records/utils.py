@@ -1,5 +1,5 @@
-from uuid import UUID
 from io import BytesIO
+from uuid import UUID
 
 from django.core.files.base import ContentFile
 from django.urls import reverse

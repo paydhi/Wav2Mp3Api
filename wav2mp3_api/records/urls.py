@@ -1,4 +1,5 @@
 from django.urls import path
+
 from records.views import UploadRecordView, DownloadRecordView
 
 urlpatterns = [
