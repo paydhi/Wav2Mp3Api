@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
-from pydub import AudioSegment
+from pydub.exceptions import PydubException
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,8 +10,7 @@ from records.models import Record
 from records.serializers import UploadRecordSerializer
 from users.models import User
 
-from django.core.files.base import ContentFile
-from io import BytesIO
+from records.utils import convert_wav_to_mp3, get_download_url
 
 
 class UploadRecordView(APIView):
@@ -21,33 +19,32 @@ class UploadRecordView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+        user_uuid = serializer.validated_data.get('user_uuid')
+        access_token = serializer.validated_data.get('access_token')
+        user_query = User.objects.filter(user_uuid=user_uuid)
 
-        user_query = User.objects.filter(user_uuid=serializer.validated_data.get('user_uuid'))
         if not user_query.exists():
-            return Response(data={'user_uuid': 'User not found'}, status=400)
+            logger.error(f'User with uuid {user_uuid} not found')
+            return Response(data={'user_uuid': 'User not found'}, status=401)
+        elif not user_query.first().access_token == access_token:
+            logger.error(f'Access token for user with uuid {user_uuid} does not match')
+            return Response(data={'access_token': 'Access token does not match'}, status=401)
 
-        if Record.objects.filter(user=user_query[0]).exists():
-            Record.objects.filter(user=user_query[0]).delete()
-            logger.info('Deleted all records for user %s', request.data.get('user_uuid'))
+        user = user_query.first()
 
         file = request.FILES.get('file')
-        suffix = f'_{request.data.get("user_uuid")[:4]}.mp3'
-        filename_mp3 = file.name.replace(".wav", suffix)
+        try:
+            file = convert_wav_to_mp3(file)
+        except PydubException:
+            return Response({'error': 'Invalid file'}, status=400)
 
-        record_mp3 = BytesIO()
-        record_wav = AudioSegment.from_wav(BytesIO(file.read()))
-        record_wav.export(record_mp3, format='mp3')
-        record_mp3.seek(0)
+        record = Record.objects.create(record=file, user=user)
 
-        record_to_save = ContentFile(record_mp3.read(), name=filename_mp3)
-
-        record = Record.objects.create(record=record_to_save, user=user_query[0])
-        download_url = request.build_absolute_uri(
-            reverse('download_record') + f'?id={record.record_uuid}&user={user_query[0].user_uuid}')
+        download_url = get_download_url(request, record, user)
 
         response = Response({'download_record': {'download_url': download_url,
                                                  'id': record.record_uuid,
-                                                 'user': user_query[0].user_uuid}})
+                                                 'user': user.user_uuid}}, status=201)
 
         return response
 
@@ -58,8 +55,10 @@ class DownloadRecordView(APIView):
         user_uuid = request.GET.get('user')
 
         record = get_object_or_404(Record, record_uuid=record_uuid, user__user_uuid=user_uuid)
+        filename = record.record.name.removeprefix('uploads/')
 
         response = HttpResponse(record.record, content_type='audio/mpeg')
-        response['Content-Disposition'] = f'attachment; filename={record.record.name}'
+        logger.info(record.record.name)
+        response['Content-Disposition'] = f'attachment; filename={filename}'
 
         return response
