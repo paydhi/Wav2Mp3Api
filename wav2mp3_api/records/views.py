@@ -14,7 +14,8 @@ class UploadRecordView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user_uuid = serializer.validated_data.get('user_uuid')
-        user = validate_user(get_user(user_uuid))
+        user = get_user(user_uuid)
+        validate_user(user)
         validate_access_token(serializer, user)
 
         file = convert_wav_to_mp3(serializer.validated_data.get('file'))

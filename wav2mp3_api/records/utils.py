@@ -41,7 +41,6 @@ def validate_user(user, *args, **kwargs):
     if not user:
         logger.error(f'User not found')
         raise APIException('User not found')
-    return user
 
 
 def validate_access_token(validated_serializer, user, *args, **kwargs):
