@@ -16,8 +16,8 @@ class UploadRecordSerializer(serializers.Serializer):
 
 
 class DownloadRecordSerializer(serializers.Serializer):
-    record_uuid = serializers.UUIDField()
-    user_uuid = serializers.UUIDField()
+    id = serializers.UUIDField()
+    user = serializers.UUIDField()
 
     class Meta:
-        fields = ['record_uuid', 'user_uuid']
+        fields = ['id', 'user']
